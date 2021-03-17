@@ -32,11 +32,11 @@ class ExtractMutationNullomers():
 
     def _nullomer_reader(self, nullomer_file):
         """
-        Reads in a two-column file, with kmers in one col and the number of times they occur in the genome in the second col. Sets a set of kmers with count == 0.
+        Reads in a one-column file, with each line being a nullomer string
 
         Arguments:
             nullomer_file::str
-                Path to a file of kmers, where the left column is the kmer and the right column is the count of its occurrences in the genome
+                Path to a file of nullomer, where each line is a nullomer
         
         Returns:
             None
@@ -46,21 +46,17 @@ class ExtractMutationNullomers():
         with open(nullomer_file) as infile:
             # look for nullomers of any length
             if self.nullomer_len == 0:
-                for line in infile:
-                    kmer, count = line.split()
-                    kmer_len = len(kmer)
-                    if int(count)==0:
-                    # if the occurence of a kmer is 0, it is a nullomer and add it to the set
-                        nullomer_set.add(kmer)
-                        if kmer_len > max_null: 
-                            self.max_null_length = kmer_len
+                for nullomer in infile:
+                    nullomer_len = len(nullomer)
+                    nullomer_set.add(nullomer)
+                    if nullomer_len > max_null: 
+                        self.max_null_length = nullomer_len
             else: # look for nullomers of only a certain length
                 self.max_null_length = self.nullomer_len
-                for line in infile:    
-                    kmer, count = line.split()
-                    kmer_len = len(kmer)
-                    if int(count) == 0 and kmer_len == self.nullomer_len:
-                        nullomer_set.add(kmer)
+                for nullomer in infile:   
+                    nullomer_len = len(nullomer)
+                    if nullomer_len == self.nullomer_len:
+                        nullomer_set.add(nullomer)
 
             self.nullomer_set = nullomer_set
             print("Nullomer read-in complete")
@@ -108,6 +104,7 @@ class ExtractMutationNullomers():
             chrom_key = "chr" + chrom
             ref_len = len(ref)
             alt_len = len(alt)
+
             
             # the bases leading up to the mutation site will always be the same, so no conditionals needed
             left_flank = self.genome_dict[chrom_key][pos - self.max_null_length : pos - 1].upper()
@@ -147,19 +144,21 @@ class ExtractMutationNullomers():
                         found_nullomers.append(subsequence)
                     if rc_subsequence in self.nullomer_set:
                         found_nullomers.append(rc_subsequence)
+            
 
-            # if at least one new nullomer found, put it with the mutation and append it to a *special* list
-            if len(found_nullomers) != 0:
+            # if at least one new nullomer found, put it with the mutation and append it to a *special* list.
+            if found_nullomers:
                 # get length of longest nullomer
                 max_len = 0
                 for null in found_nullomers:
                     length = len(null)
-                    if  length > max_len:
+                    if length > max_len:
                         max_len = length
-                
                 # each line should be of format: chrom, start, end, cancer type patient id REF ALT seq nullomers
                 nullomer_mutations.append((chrom, pos-max_len, pos+max_len, cancer_type, patient_id, ref, alt, variant_motif, found_nullomers))
-
+            # if no nullomers are found for that variant, just put "None" in the found_nullomers column
+            else:
+                nullomer_mutations.append((chrom, pos-self.max_null_length, pos+self.max_null_length, cancer_type, patient_id, ref, alt, variant_motif, "None"))
         return nullomer_mutations
 
 
@@ -167,7 +166,7 @@ class ExtractMutationNullomers():
 # Input filename into the object for use
 if __name__ == "__main__":
     # change the genome_fasta path to your genome file
-    example_scanner = ExtractMutationNullomers(genome_fasta="genome_files/chr1_hg37.fa", nullomer_file="All_kmer_words_1_15nt_occurrences_genome_hg38", nullomer_len=0)
+    example_scanner = ExtractMutationNullomers(genome_fasta="genome_files/chr1_hg37.fa", nullomer_file="nullomer_kmer_files/nullomers_chr1_hg37.txt", nullomer_len=0)
     # change the path to your mutation file
     mutations = example_scanner.scan_mutations("genome_files/mutation_example.txt", chr_col=2, pos_col=3, ref_col=4, alt_col=5)
     
@@ -178,6 +177,8 @@ if __name__ == "__main__":
                 if isinstance(item, list):
                     for null in item:
                         mutation_file.write(null + ",")
+                elif item == "None":
+                    mutation_file.write(item)
                 else:
                     mutation_file.write(str(item) + "\t")
             mutation_file.write("\n")
