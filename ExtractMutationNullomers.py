@@ -30,8 +30,6 @@ class ExtractMutationNullomers():
         for section in SeqIO.parse(genome_fasta, "fasta"):
             genome_dict[str(section.description)] = str(section.seq).upper()
         self.genome_dict = genome_dict
-        for item in self.genome_dict:
-            print(self.genome_dict[item])
         print("Genome read-in complete")
         
 
