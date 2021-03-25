@@ -12,6 +12,17 @@ class EnumerateNullomers():
         self.range = range
         self._genome_reader(genome_fasta)
     
+    @staticmethod
+    def check_bases(seq):
+        """
+        Checks whether all of the bases in seq are one of the four canonical bases. Returns True if this is case, else False. 
+        """
+        for base in seq:
+            if base != "A" and base != "C" and base != "G" and base != "T":
+                return False
+        return True
+
+    
     def _genome_reader(self, genome_fasta):
         """
         reads in a genome in fasta format, and sets a dictionary where each key is a chrom and each entry is a string of the sequence
@@ -26,7 +37,7 @@ class EnumerateNullomers():
         self.genome_sequences = []
         for section in SeqIO.parse(genome_fasta, "fasta"):
             # strip sequences of unknown bases and make everything uppercase
-            self.genome_sequences.append(str(section.seq).strip("Nn").upper())
+            self.genome_sequences.append(str(section.seq).upper())
         print("Genome read-in complete")
 
     def _count_genome_kmers(self):
@@ -50,24 +61,24 @@ class EnumerateNullomers():
                 for seq in self.genome_sequences:
                     for i in range(0, len(seq)+1-kmer_len):
                         motif = seq[i:i+kmer_len]
-                        if "N" not in motif:
+                        if self.check_bases(motif):
                             kmer_counts[motif] += 1
                 for seq in genome_rcs:
                     for im in range(0, len(seq)+1-kmer_len):
                         motif = seq[im:im+kmer_len]
-                        if "N" not in motif:
+                        if self.check_bases(motif):
                             kmer_counts[motif] += 1
         # count kmer occurrences for only kmers of length self.kmer_len
         else:
             for seq in self.genome_sequences:
                 for i in range(0, len(seq)+1-self.kmer_len):
                     motif = seq[i:i+self.kmer_len]
-                    if "N" not in motif:
+                    if self.check_bases(motif):
                         kmer_counts[motif] += 1
             for seq in genome_rcs:
                 for im in range(0, len(seq)+1-self.kmer_len):
                     motif = seq[im:im+self.kmer_len]
-                    if "N" not in motif:
+                    if self.check_bases(motif):
                         kmer_counts[motif] += 1
 
         return kmer_counts
@@ -122,16 +133,17 @@ class EnumerateNullomers():
 
 if __name__ == "__main__":
     start = time.time()
-    nully = EnumerateNullomers(genome_fasta = "genome_files/chr1.fa", kmer_length = 12)
+    # if youre using this script, you can put your desired kmer length below
+    nully = EnumerateNullomers(genome_fasta = "genome_files/test.fa", kmer_length = 3)
     nullomers, kmers = nully.enumerate()
 
     # write output file of genome kmers (kmer with count on same line)
-    with open("genome_kmers.txt", "w") as kmer_file:
+    with open("nullomer+kmer_files/test_kmers.txt", "w") as kmer_file:
         for kmer, count in kmers:
             kmer_file.write(kmer + "\t" + str(count) + "\n")
 
     # write output file of nullomers (one nullomer per line)
-    with open("nullomers.txt", "w") as nullomer_file:
+    with open("nullomer+kmer_files/test_nullomers.txt", "w") as nullomer_file:
         for nullomer in nullomers:
             nullomer_file.write(nullomer + "\n")
 
