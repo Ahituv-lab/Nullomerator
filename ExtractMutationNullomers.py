@@ -3,6 +3,9 @@ from Bio import SeqIO
 from Bio.Seq import Seq 
 
 class ExtractMutationNullomers():
+    """
+    This class takes in a list of mutations (SNPs, indels, complex subs), and looks to see if any of them generate nullomers given a specified genome
+    """
 
     def __init__(self, genome_fasta = "hg38p13_primary.fa", nullomer_file = "All_kmer_words_1_15nt_occurrences_genome_hg38", nullomer_len = 0):
         self.nullomer_set = None
@@ -25,8 +28,10 @@ class ExtractMutationNullomers():
         """
         genome_dict = {}
         for section in SeqIO.parse(genome_fasta, "fasta"):
-            genome_dict[str(section.description)] = str(section.seq)
+            genome_dict[str(section.description)] = str(section.seq)upper()
         self.genome_dict = genome_dict
+        for item in self.genome_dict:
+            print(self.genome_dict[item])
         print("Genome read-in complete")
         
 
@@ -99,7 +104,7 @@ class ExtractMutationNullomers():
         print("Mutation read-in complete, starting mutation scan")
         nullomer_mutations = []
         for item in mutation_data:
-            chrom, pos, ref, alt = item[chr_col], int(item[pos_col]), item[ref_col], item[alt_col]
+            chrom, pos, ref, alt = item[chr_col], int(item[pos_col]), item[ref_col].upper(), item[alt_col].upper()
             cancer_type, patient_id = item[0], item[1]
             chrom_key = "chr" + chrom
             ref_len = len(ref)
@@ -107,15 +112,15 @@ class ExtractMutationNullomers():
 
             
             # the bases leading up to the mutation site will always be the same, so no conditionals needed
-            left_flank = self.genome_dict[chrom_key][pos - self.max_null_length : pos - 1].upper()
+            left_flank = self.genome_dict[chrom_key][pos - self.max_null_length : pos - 1]
 
             # if the ref allele is 1, this is either a snp or an insertion, which are handled the same
             if ref_len == 1:
-                right_flank = self.genome_dict[chrom_key][pos : pos + self.max_null_length - 1].upper()
+                right_flank = self.genome_dict[chrom_key][pos : pos + self.max_null_length - 1]
             
             # if ref_len > 1, this is a deletion or complex indel. These cases are handled the same
             elif ref_len > 1:
-                right_flank = self.genome_dict[chrom_key][pos + ref_len - 1: pos + ref_len + self.max_null_length - 2].upper()
+                right_flank = self.genome_dict[chrom_key][pos + ref_len - 1: pos + ref_len + self.max_null_length - 2]
 
             # generate the mutated sequence, and its reverse complement
             variant_motif = left_flank + alt + right_flank
@@ -166,7 +171,7 @@ class ExtractMutationNullomers():
 # Input filename into the object for use
 if __name__ == "__main__":
     # change the genome_fasta path to your genome file
-    example_scanner = ExtractMutationNullomers(genome_fasta="genome_files/chr1_hg37.fa", nullomer_file="nullomer_kmer_files/nullomers_chr1_hg37.txt", nullomer_len=0)
+    example_scanner = ExtractMutationNullomers(genome_fasta="genome_files/chr1_hg37.fa", nullomer_file="nullomer+kmer_files/nullomers_chr1_hg37.txt", nullomer_len=0)
     # change the path to your mutation file
     mutations = example_scanner.scan_mutations("genome_files/mutation_example.txt", chr_col=2, pos_col=3, ref_col=4, alt_col=5)
     

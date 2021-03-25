@@ -5,6 +5,10 @@ from collections import Counter
 import time 
 
 class EnumerateNullomers():
+    """
+    This is a class which takes in a genome, and generates a list of nullomers of a specified length or range for this genome. Also generates 
+    counts for each kmer that DOES appear in the genome.
+    """
 
     def __init__(self, genome_fasta, kmer_length, no_trivial = False, range = True):
         self.kmer_len = kmer_length
