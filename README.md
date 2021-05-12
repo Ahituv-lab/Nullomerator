@@ -29,6 +29,6 @@ Removes nullomers that are likely to result from common variants in a user speci
 Performs the identification of nullomers in raw read samples
 
 
-## Needed Libraries
+## Third Party Resources
 
 Biopython: https://biopython.org/
