@@ -27,3 +27,8 @@ Removes nullomers that are likely to result from common variants in a user speci
 
 **6.FindDNANullomersFromReads**
 Performs the identification of nullomers in raw read samples
+
+
+## Needed Libraries
+
+Biopython: https://biopython.org/
