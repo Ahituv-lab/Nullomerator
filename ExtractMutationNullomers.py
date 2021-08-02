@@ -4,20 +4,22 @@ from Bio.Seq import Seq
 
 class ExtractMutationNullomers():
     """
-    This class takes in a list of mutations (SNPs, indels, complex subs), and looks to see if any of them generate nullomers given a specified genome
+    This class takes in a list of mutations (SNPs, indels, complex subs), and looks to see if any of them generate nullomers given a specified genome and list 
+    of nullomers from that genome
     """
 
-    def __init__(self, genome_fasta = "hg38p13_primary.fa", nullomer_file = "All_kmer_words_1_15nt_occurrences_genome_hg38", nullomer_len = 0):
+    def __init__(self, genome_fasta = "hg38p13_primary.fa", nullomer_file = "All_kmer_words_1_15nt_occurrences_genome_hg38", nullomer_len = 10):
         self.nullomer_set = None
         self.genome_dict = None
-        self.max_null_length = None
+        self.genome_length_dict = None
         self.nullomer_len = nullomer_len
         self._genome_reader(genome_fasta)
         self._nullomer_reader(nullomer_file)
 
     def _genome_reader(self, genome_fasta):
         """
-        reads in a genome in fasta format, and sets a dictionary where each key is a chrom and each entry is a string of the sequence
+        reads in a genome in fasta format, and sets a dictionary where each key is a chrom and each entry is a string of the sequence.
+        Also makes a dictionary that holds the lengths of each chromosome
 
         Arguments:
             genome_fasta::str
@@ -27,11 +29,15 @@ class ExtractMutationNullomers():
             None
         """
         genome_dict = {}
+        genome_length_dict = {}
         for section in SeqIO.parse(genome_fasta, "fasta"):
             section_description = str(section.description).split()
             section_header = section_description[0]
-            genome_dict[section_header] = str(section.seq).upper()
+            chrom_sequence = str(section.seq).upper()
+            genome_dict[section_header] = chrom_sequence
+            genome_length_dict[section_header] = len(chrom_sequence)
         self.genome_dict = genome_dict
+        self.genome_length_dict = genome_length_dict
         print("Genome read-in complete")
         
 
@@ -47,24 +53,13 @@ class ExtractMutationNullomers():
             None
         """
         nullomer_set = set()
-        max_null = 0
-        with open(nullomer_file) as infile:
-            # look for nullomers of any length
-            if self.nullomer_len == 0:
-                for nullomer in infile:
-                    nullomer_len = len(nullomer)
-                    nullomer_set.add(nullomer)
-                    if nullomer_len > max_null: 
-                        self.max_null_length = nullomer_len
-            else: # look for nullomers of only a certain length
-                self.max_null_length = self.nullomer_len
-                for nullomer in infile:   
-                    nullomer_len = len(nullomer)
-                    if nullomer_len == self.nullomer_len:
-                        nullomer_set.add(nullomer)
 
-            self.nullomer_set = nullomer_set
-            print("Nullomer read-in complete")
+        with open(nullomer_file) as infile:
+            for nullomer in infile:
+                nullomer = nullomer.strip()
+                nullomer_set.add(nullomer)
+        self.nullomer_set = nullomer_set
+        print("Nullomer read-in complete")
 
     def _mutation_reader(self, mutation_file, comments):
         """ 
@@ -81,6 +76,39 @@ class ExtractMutationNullomers():
 
         return mutation_data
 
+    def _generate_left_flank(self, chrom_key, pos):
+        """
+        Captures the genomic sequence preceding a variant.
+        """
+        # if the mutation position is very close to the beginning or end of the chromosome, the variant motifs need to be handled a bit differently
+        # the bases leading up to the mutation site will always be the same, so no conditionals needed regarding changing the left flank sequence
+        if pos < self.nullomer_len:
+            left_flank = self.genome_dict[chrom_key][:pos - 1]
+        else:
+            left_flank = self.genome_dict[chrom_key][pos - self.nullomer_len : pos - 1]
+        
+        return left_flank
+    
+    def _generate_right_flank(self, chrom_key, pos, ref_len):
+        """
+        Captures the genomic sequence following a variant.
+        """
+        # if the ref allele is 1, this is either a snp or an insertion, which are handled the same
+        if ref_len == 1:
+            # if right flank extends past end of the chromosome, handle this case
+            if (pos + self.nullomer_len - 1) >= self.genome_length_dict[chrom_key]:
+                right_flank = self.genome_dict[chrom_key][pos:]
+            else:
+                right_flank = self.genome_dict[chrom_key][pos : pos + self.nullomer_len - 1]
+            
+        # if ref_len > 1, this is a deletion or complex indel. These cases are handled the same
+        elif ref_len > 1:
+            if (pos + ref_len + self.nullomer_len - 2) > self.genome_length_dict[chrom_key]:
+                right_flank = self.genome_dict[chrom_key][pos + ref_len - 1:]
+            else:
+                right_flank = self.genome_dict[chrom_key][pos + ref_len - 1: pos + ref_len + self.nullomer_len - 2]
+        
+        return right_flank
 
     def scan_mutations(self, mutation_file, chr_col=0, pos_col=1, ref_col=3, alt_col=4, comments="#"):
         """
@@ -100,7 +128,7 @@ class ExtractMutationNullomers():
         
         Returns:
             nullomer_mutations::list
-                A list of variants that create nullomers. For each variant, the chr, pos, reference allele, alternative allele, and nullomers it creates are returned.
+                A list of all of the input variants with relevant information added. For each variant, the chr, pos, reference allele, alternative allele, and nullomers it creates are returned.
             """
         mutation_data = self._mutation_reader(mutation_file, comments="#")
         print("Mutation read-in complete, starting mutation scan")
@@ -117,62 +145,47 @@ class ExtractMutationNullomers():
             ref_len = len(ref)
             alt_len = len(alt)
             
-            # the bases leading up to the mutation site will always be the same, so no conditionals needed
-            left_flank = self.genome_dict[chrom_key][pos - self.max_null_length : pos - 1]
-
-            # if the ref allele is 1, this is either a snp or an insertion, which are handled the same
-            if ref_len == 1:
-                right_flank = self.genome_dict[chrom_key][pos : pos + self.max_null_length - 1]
             
-            # if ref_len > 1, this is a deletion or complex indel. These cases are handled the same
-            elif ref_len > 1:
-                right_flank = self.genome_dict[chrom_key][pos + ref_len - 1: pos + ref_len + self.max_null_length - 2]
+            # get the left and right flank
+            left_flank = self._generate_left_flank(chrom_key, pos)
+            right_flank = self._generate_right_flank(chrom_key, pos, ref_len)
 
             # generate the mutated sequence, and its reverse complement
             if alt == "." or alt == "-":
             	alt = ""
-            	
+                
             variant_motif = left_flank + alt + right_flank
             variant_rc = str(Seq(variant_motif).reverse_complement())
             motif_len = len(variant_motif)
 
             # search for nullomers in the new sequence
             found_nullomers = []
-            if self.nullomer_len == 0:
-                for seq_len in range(1, self.max_null_length + 1):
-                    for i in range(0, motif_len-seq_len+1):
-                        subsequence = variant_motif[i:i+seq_len]
-                        rc_subsequence = variant_rc[i:i+seq_len]
-
-                        if subsequence in self.nullomer_set:
-                            found_nullomers.append(subsequence)
-                        if rc_subsequence in self.nullomer_set:
-                            found_nullomers.append(rc_subsequence)
-                        
-            # if the nullomer length is fixed, the computation is slightly different
-            else:
-                for i in range(0, motif_len-self.nullomer_len):
-                    subsequence = variant_motif[i:i+self.nullomer_len]
-                    rc_subsequence = variant_rc[i:i+self.nullomer_len]
-                    if subsequence in self.nullomer_set:
-                        found_nullomers.append(subsequence)
-                    if rc_subsequence in self.nullomer_set:
-                        found_nullomers.append(rc_subsequence)
+            for i in range(0, motif_len-self.nullomer_len+1):
+                subsequence = variant_motif[i:i+self.nullomer_len]
+                rc_subsequence = variant_rc[i:i+self.nullomer_len]
+                print(subsequence)
+                if subsequence in self.nullomer_set:
+                    found_nullomers.append(subsequence)
+                if rc_subsequence in self.nullomer_set:
+                    found_nullomers.append(rc_subsequence)
             
 
             # if at least one new nullomer found, put it with the mutation and append it to a *special* list.
-            if found_nullomers:
-                # get length of longest nullomer
-                max_len = 0
-                for null in found_nullomers:
-                    length = len(null)
-                    if length > max_len:
-                        max_len = length
-                # each line should be of format: chrom, start, end, cancer type patient id REF ALT seq nullomers
-                nullomer_mutations.append((chrom, pos-max_len, pos+max_len, ref, alt, variant_motif, found_nullomers))
-            # if no nullomers are found for that variant, just put "None" in the found_nullomers column
+            if pos-self.nullomer_len < 1:
+                range_start = 1
+                range_end = pos+self.nullomer_len-1
+            elif pos+self.nullomer_len > self.genome_length_dict[chrom_key]:
+                range_start = pos-self.nullomer_len+1
+                range_end = self.genome_length_dict[chrom_key]
             else:
-                nullomer_mutations.append((chrom, pos-self.max_null_length, pos+self.max_null_length, ref, alt, variant_motif, "None"))
+                range_start = pos-self.nullomer_len
+                range_end = pos+self.nullomer_len-1
+
+            if found_nullomers:
+                nullomer_mutations.append((chrom, range_start, range_end, ref, alt, variant_motif, found_nullomers))
+            else: # if no nullomers are found for that variant, just put "None" in the found_nullomers column
+                nullomer_mutations.append((chrom, range_start, range_end, ref, alt, variant_motif, "None"))
+            
         return nullomer_mutations
     
     @staticmethod
@@ -184,10 +197,15 @@ class ExtractMutationNullomers():
             for mutation in mutations:
                 for item in mutation:
                     if isinstance(item, list):
-                        for null in item:
-                            mutation_file.write(null + ",")
+                        for i,null in enumerate(item):
+                            if i == len(item)-1:
+                                mutation_file.write(null)
+                            else:
+                                mutation_file.write(null + ",")
                     elif item == "None":
                         mutation_file.write(item)
+                    elif item == "":
+                        mutation_file.write("-" + "\t")
                     else:
                         mutation_file.write(str(item) + "\t")
                 mutation_file.write("\n")
@@ -198,14 +216,14 @@ class ExtractMutationNullomers():
 # Input filename into the object for use
 if __name__ == "__main__":
     # change the genome_fasta path to your genome file
-    example_scanner = ExtractMutationNullomers(genome_fasta="genome_files/chr1_hg37.fa", nullomer_file="nullomer+kmer_files/nullomers_chr1_hg37.txt", nullomer_len=0)
+    example_scanner = ExtractMutationNullomers(genome_fasta="sample_data/genome_files/chr1_hg19.fa", nullomer_file="sample_data/nullomer+kmer_files/chr1_hg19_nullomers.txt", nullomer_len=13)
 
     # change the path to your mutation file. The positional arguments after the path argument mark the columns in which each piece of relevant data lies.
     # for example, looking for mutations stored in a vcf file would look like: 
     #                                           example_scanner.scan_mutations("path_to_vcf", chr_col=0, pos_col=1, ref_col=3, alt_col=4)
-    mutations = example_scanner.scan_mutations("genome_files/mutation_example.txt", chr_col=2, pos_col=3, ref_col=4, alt_col=5)
+    mutations = example_scanner.scan_mutations("sample_data/mutation_files/mutation_example.txt", chr_col=2, pos_col=3, ref_col=4, alt_col=5)
     
     # write the output file. if you are using this, just change the output filepath to your desired location 
-    ExtractMutationNullomers.write_output("mutation_nullomers.tsv",mutations)
+    ExtractMutationNullomers.write_output("sample_data/output_files/mutation_nullomers.tsv", mutations)
     
             
