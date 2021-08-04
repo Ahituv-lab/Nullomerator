@@ -126,8 +126,9 @@ class FindAlmostNullomers():
     
     def _generate_snp_insertion_variant_sequences_and_scan(self, chrom_number, pos, left_flank, ref_base, right_flank, all_nullomer_variants_list):
         """
+        Generates variant motif sequences at a certain position on a specified chromosome. Then scans these generated motifs for 
+        nullomers and adds them to a global list. This helper function handles SNP and insertions specifically.
         """
-        
         dna_bases = {"A", "C", "T", "G"}
         # generate variant motifs that occur from SNPs and small (1 bp) insertions. Then scan these motifs for nullomers.
         for dna_base in dna_bases:
@@ -150,6 +151,10 @@ class FindAlmostNullomers():
                 all_nullomer_variants_list.append(info)
     
     def _generate_deletion_variant_sequences_and_scan(self,chrom_number, pos, left_flank, ref_genotype, right_flank, all_nullomer_variants_list):
+        """
+        Generates variant motif sequences at a certain position on a specified chromosome. Then scans these generated motifs for 
+        nullomers and adds them to a global list. This helper function handles SNP and insertions specifically.
+        """
         # generate variant motif from small (1 bp) deletion. Add this to nullomer causing variant list if nullomers are created
         ref_base = ref_genotype[0]
         deletion_variant_motif = left_flank + ref_base + right_flank
@@ -164,7 +169,17 @@ class FindAlmostNullomers():
 
     def find_almost_nullomers(self, indel_size=1):
         """
-        With a nullomer set and genome, this method generates a list of mutations that cause a nullomer to arise in the given genome
+        With a nullomer set and genome, this method generates a list of mutations that cause a nullomer to arise in the given genome.
+        Performs the main analysis of this Class
+
+        Arguments:
+            indel_size::int
+                Default=1. Size of indels that will be considered
+        
+        Returns:
+            all_nullomer_variants::list
+                List of tuples that contain information for each nullomer causing mutations in format:
+                chr, pos, ref_allele, alt_allele, variant_motif, nullomers_created
         """
         all_nullomer_variants = []
         dna_bases = {"A", "C", "G", "T"}
@@ -197,6 +212,15 @@ class FindAlmostNullomers():
     def write_output(output_filepath, mutations):
         """
         Writes an output file given a list of lines, where each item in a line is a single item in a list. 
+
+        Arguments:
+            output_filepath::string
+                Path to where the output file will be stored
+            mutations::List
+                List of mutation information for each nullomer-creating mutation
+        
+        Returns:
+            None
         """
         with open(output_filepath, "w") as mutation_file:
             mutation_file.write("#chr\tpos\tid\tref\talt\tvariant_motif\tnullomers_created\n")
