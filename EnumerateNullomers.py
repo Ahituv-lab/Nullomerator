@@ -3,16 +3,16 @@ from Bio.Seq import Seq
 from Bio import SeqIO
 from collections import Counter
 import time 
+import argparse
 
 class EnumerateNullomers():
     """
     This is a class which takes in a genome, and generates a list of nullomers of a specified length or range for this genome. Also generates 
-    counts for each kmer that DOES appear in the genome.
+    counts for each kmer that DOES appear in the genome. Returns both of these tables as files. 
     """
 
-    def __init__(self, genome_fasta, kmer_length, no_trivial = False, range = True):
+    def __init__(self, genome_fasta, kmer_length, range = False):
         self.kmer_len = kmer_length
-        self.no_trivial = no_trivial
         self.range = range
         self._genome_reader(genome_fasta)
     
@@ -137,17 +137,26 @@ class EnumerateNullomers():
 
 if __name__ == "__main__":
     start = time.time()
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--genome_file', help='Put in the path to the fasta file containing the genome being analyzed', type=str)
+    parser.add_argument('--nullomer_output_file', help='Put in the path to the output .txt file where the nullomers absent from the supplied genome will be written', type=str)
+    parser.add_argument('--kmer_output_file', help='Put in the path to the output .tsv file where the kmers present from the supplied genome will be written', type=str)
+    parser.add_argument('--kmer_length', help="Supply the length of kmers/nullomers being enumerated", type=int)
+
+    args = parser.parse_args()
+
     # if youre using this script, you can put your desired kmer length below
-    nully = EnumerateNullomers(genome_fasta = "genome_files/test.fa", kmer_length = 3)
-    nullomers, kmers = nully.enumerate()
+    enumerator = EnumerateNullomers(genome_fasta=args.genome_file, kmer_length=args.kmer_length)
+    nullomers, kmers = enumerator.enumerate()
 
     # write output file of genome kmers (kmer with count on same line)
-    with open("nullomer+kmer_files/test_kmers.txt", "w") as kmer_file:
+    with open(args.kmer_output_file, "w") as kmer_file:
         for kmer, count in kmers:
             kmer_file.write(kmer + "\t" + str(count) + "\n")
 
     # write output file of nullomers (one nullomer per line)
-    with open("nullomer+kmer_files/test_nullomers.txt", "w") as nullomer_file:
+    with open(args.nullomer_output_file, "w") as nullomer_file:
         for nullomer in nullomers:
             nullomer_file.write(nullomer + "\n")
 

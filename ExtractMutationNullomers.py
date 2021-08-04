@@ -1,6 +1,7 @@
 import re,os,sys,glob
 from Bio import SeqIO
 from Bio.Seq import Seq 
+import argparse
 
 class ExtractMutationNullomers():
     """
@@ -163,7 +164,6 @@ class ExtractMutationNullomers():
             for i in range(0, motif_len-self.nullomer_len+1):
                 subsequence = variant_motif[i:i+self.nullomer_len]
                 rc_subsequence = variant_rc[i:i+self.nullomer_len]
-                print(subsequence)
                 if subsequence in self.nullomer_set:
                     found_nullomers.append(subsequence)
                 if rc_subsequence in self.nullomer_set:
@@ -171,10 +171,10 @@ class ExtractMutationNullomers():
             
 
             # if at least one new nullomer found, put it with the mutation and append it to a *special* list.
-            if pos-self.nullomer_len < 1:
+            if pos-self.nullomer_len < 1: # handle edge case where nullomer is right at the beginning of a chromosome
                 range_start = 1
                 range_end = pos+self.nullomer_len-1
-            elif pos+self.nullomer_len > self.genome_length_dict[chrom_key]:
+            elif pos+self.nullomer_len > self.genome_length_dict[chrom_key]: # handle edge case where nullomer is right at the end of a chromosome
                 range_start = pos-self.nullomer_len+1
                 range_end = self.genome_length_dict[chrom_key]
             else:
@@ -196,7 +196,7 @@ class ExtractMutationNullomers():
         with open(output_filepath, "w") as mutation_file:
             for mutation in mutations:
                 for item in mutation:
-                    if isinstance(item, list):
+                    if isinstance(item, list): 
                         for i,null in enumerate(item):
                             if i == len(item)-1:
                                 mutation_file.write(null)
@@ -212,18 +212,25 @@ class ExtractMutationNullomers():
 
 
 
-
 # Input filename into the object for use
 if __name__ == "__main__":
-    # change the genome_fasta path to your genome file
-    example_scanner = ExtractMutationNullomers(genome_fasta="sample_data/genome_files/chr1_hg19.fa", nullomer_file="sample_data/nullomer+kmer_files/chr1_hg19_nullomers.txt", nullomer_len=13)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--genome_file', help='Put in the path to the fasta file containing the genome being analyzed', type=str)
+    parser.add_argument('--nullomer_file', help='Put in the path to the .txt file containing the nullomers absent from the supplied genome', type=str)
+    parser.add_argument('--mutation_input_file', help='Put in the path to the vcf file containing the mutations being analyzed by this tool', type=str)
+    parser.add_argument('--mutation_output_file', help='Put in the path to the output file where the nullomer-causing mutations will be written to', type=str)
+    parser.add_argument('--nullomer_length', help="Supply the length of nullomers being analyzed", type=int)
+
+    args = parser.parse_args()
+    example_scanner = ExtractMutationNullomers(genome_fasta=args.genome_file, nullomer_file=args.nullomer_file, nullomer_len=args.nullomer_length)
 
     # change the path to your mutation file. The positional arguments after the path argument mark the columns in which each piece of relevant data lies.
     # for example, looking for mutations stored in a vcf file would look like: 
     #                                           example_scanner.scan_mutations("path_to_vcf", chr_col=0, pos_col=1, ref_col=3, alt_col=4)
-    mutations = example_scanner.scan_mutations("sample_data/mutation_files/mutation_example.txt", chr_col=2, pos_col=3, ref_col=4, alt_col=5)
+    mutations = example_scanner.scan_mutations(args.mutation_input_file, chr_col=0, pos_col=1, ref_col=3, alt_col=4)
     
     # write the output file. if you are using this, just change the output filepath to your desired location 
-    ExtractMutationNullomers.write_output("sample_data/output_files/mutation_nullomers.tsv", mutations)
+    ExtractMutationNullomers.write_output(args.mutation_output_file, mutations)
     
             
