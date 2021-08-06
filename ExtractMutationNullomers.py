@@ -194,7 +194,6 @@ class ExtractMutationNullomers():
                 range_end = pos+self.nullomer_len-1
             
             ## QUESTION: How do we handle the ranges for indels?
-            print(found_nullomers)
             if found_nullomers:
                 nullomer_mutations.append((chrom, pos, ".",ref, alt, variant_motif, str(range_start)+":"+str(range_end), found_nullomers))
             else: # if no nullomers are found for that varaiant, just put "None" in the found_nullomers column
