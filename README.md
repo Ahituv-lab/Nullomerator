@@ -32,3 +32,5 @@ Performs the identification of nullomers in raw read samples
 ## Third Party Resources
 
 Biopython: https://biopython.org/
+
+## Documentation (Draft, to assist with testing)
