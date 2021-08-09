@@ -1,151 +1,252 @@
-import time
-import os
+import re,os,sys,glob,itertools
+from Bio.Seq import Seq 
 from Bio import SeqIO
-"""
-This program uses a reference genome and a list of nullomers to obtain a list of all possible mutations of the genome 
-that could cause the nullomer to resurface. 
-NOTE: Certain nullomers might resurface in the same location from two different mutations. For example, for the genome
-AGCA, the nullomer AGA can resurface from the substitution of C by A, the deletion of C and the insertion of an A 
-before C. This program will display all three mutations as possible causes of this nullomer.
-"""
-N = 12  # DEFINE NULLOMER LENGTH HERE
-nul_file_path = "genome_not_nullomers/12bp_nullomers/All_kmer_words_1_15nt_occurrences_genome_hg38_12bps"
-genome_file_path = "chr11.fa"
-# If output_tab_separated == false, the output will be formatted as an aligned table for easier human reading.
-# If true it will be a tab separated file for easier machine reading
-output_tab_separated = True
+import time 
+import argparse
 
-def mutate(motif, position):
-    """This function returns all possible mutations of its input
-    Args:
-        motif(string): motif of length n+1, where n is the nullomer
-        position(int): specifies the position of the first base in motif
-    Returns:
-        mutations (set): A set of tuples. Each tuple contains the position of the mutation in the chromosome/genome,
-        the mutation, the resulting kmer and the position of the mutation in the resulting kmer. Position might be
-        needed to be adapted to a tuple to also include chromosome.
-        The first position of the genome and of a kmer is 0. The position of an insertion indicates the position of the
-        base after the insertion.
-        NEW - the tuple  contains the position of the mutated base within the mutation.
+class FindAlmostNullomers():
     """
-    mutations = set()
-    n = len(motif)
-    for i in range(1, n - 1):
-        # Add all possible substitutions
-        for base in {"A", "C", "G", "T"} - {motif[i]}:
-            mutations.add(
-                (position + i - 1, motif[i - 1:i + 2] + ":" + base, motif[1:i] + base + motif[i + 1:-1], i - 1))
-        # Add all possible insertions
-        for base in {"A", "C", "G", "T"}:
-            mutations.add(
-                (position + i - 1, motif[i - 1] + "-" + motif[i] + ":" + base, motif[1:i] + base + motif[i:-2], i - 1))
-        # Add all possible deletions
-        mutations.add((position + i - 1, motif[i - 1:i + 2] + ":-", motif[1:i] + motif[i + 1:], i - 1))
-        # BUG TO FIX: At the last position of the genome (or chromosome) the deletion will give the wrong sequence
-        # Adding an extra if to handle just this case seems computationally wasteful - maybe need to split before
-        # calling mutate and handle last motif separately
-    return mutations
-
-def nul_file_reader(path):
-    """
-    Read the file in the path given, assuming the first entry in each column is a nullomer and returns
-    a set with all nullomers
-    """
-    with open(path) as f1:
-        nullomers = set()
-        for line in f1:
-            nullomers.add(line.split()[0])
-    return nullomers
-
-def analysis(name, sequence):
-    seq_len = len(sequence)
-    mut_nul_set = set()
-    for i in range(1, len(sequence) - N):
-        mut_set = mutate(sequence[i - 1:i + N + 1], i - 1)
-        for mutation in mut_set:
-            if mutation[2] in nul_set:
-                mutation = (name,) + mutation
-                mut_nul_set.add(mutation)
-        if i % 100000 == 0:
-            print("Currently testing for mutations in position {} out of {} in chromosome {}".format(i, seq_len, name))
-    return mut_nul_set
-
-
-# NEEDS TO BE ADAPTED to the fasta format
-def fasta_reader(path):
-
-    return fasta_sequences
-
-
-def output_writer(mut_nul_set, time_stamp):
-    """
-    This function takes a set of mutations and writes it in tab separated format in the output file.
-
-    :param: mutations: A set containing tuples, each tuple representing a mutation causing a nullomer to resurfrace.
-    :param: time_stamp: Time stamp to append to the output file - needs to be the same for all iterations of the
-    function
-    The function is agnostic to the format of the tuple. Currently the tuple has the form as described in mutate()
-    :return: None
+    This class uses a reference genome and a list of nullomers to obtain a list of all possible mutations of the genome 
+    that could cause the nullomer to resurface. 
     """
 
-    file_name = "output2/" + time_stamp + "mut_to_nul" + str(N) + "_out" ".txt"
-    if not os.path.isfile(file_name):
-        with open(file_name, "x") as f2:
-            # Add header to output file
-            header = ("Chromosome", "Position in genome", "Mutation", "Found nullomer", "Position of mutation within "
-                                                                                        "nullomer")
-            # I know we'll change the format back, I just wanted my output to look organised
-            if output_tab_separated:
-                f2.write("\t".join(header)+"\n")
-            else:
-                f2.write('{:<20} {:<20} {:<20} {:<20} {:<20}'.format(*header) + "\n")
+    def __init__(self, genome_file, nullomer_file, nullomer_length):
+        self.nullomer_len = nullomer_length
+        self._nullomer_reader(nullomer_file)
+        self._genome_reader(genome_file)
 
-    with open(file_name, "a") as f2:
-        for mutation in mut_nul_set:
-            if output_tab_separated:
-                f2.write('\t'.join([str(x) for x in mutation])+"\n")
-            else:
-                f2.write('{:<20} {:<20} {:<20} {:<20} {:<20}'.format(*mutation) + "\n")
+    def _genome_reader(self, genome_fasta):
+        """
+        reads in a genome in fasta format, and sets a dictionary where each key is a chrom and each entry is a string of the sequence.
+        Also makes a dictionary that holds the lengths of each chromosome
 
+        Arguments:
+            genome_fasta::str
+                Path to a genome fasta file that only holds the 24 primary chromosomes, with fasta headings ">chr1", ">chr2",...">chrX", "chrY"
+        
+        Returns:
+            None
+        """
+        genome_dict = {}
+        genome_length_dict = {}
+        for section in SeqIO.parse(genome_fasta, "fasta"):
+            section_description = str(section.description).split()
+            section_header = section_description[0]
+            chrom_sequence = str(section.seq).upper()
+            genome_dict[section_header] = chrom_sequence
+            genome_length_dict[section_header] = len(chrom_sequence)
+        self.genome_dict = genome_dict
+        self.genome_length_dict = genome_length_dict
+        print("Genome read-in complete")
+    
+    def _nullomer_reader(self, nullomer_file):
+        """
+        Reads in a one-column file, with each line being a nullomer string
+
+        Arguments:
+            nullomer_file::str
+                Path to a file of nullomer, where each line is a nullomer
+        
+        Returns:
+            None
+        """
+        nullomer_set = set()
+        with open(nullomer_file) as infile:
+            for nullomer in infile:
+                nullomer = nullomer.strip()
+                nullomer_set.add(nullomer)
+        self.nullomer_set = nullomer_set
+        print("Nullomer read-in complete")
+    
+    @staticmethod
+    def check_bases(seq):
+        """
+        Checks whether all of the bases in seq are one of the four canonical bases. Returns True if this is case, else False. 
+        """
+        for base in seq:
+            if base != "A" and base != "C" and base != "G" and base != "T" and base != "":
+                return False
+        return True
+
+    
+    def _generate_left_flank(self, chrom_key, pos):
+        """
+        Captures the genomic sequence preceding a variant.
+        """
+        # if the mutation position is very close to the beginning or end of the chromosome, the variant motifs need to be handled a bit differently
+        # the bases leading up to the mutation site will always be the same, so no conditionals needed regarding changing the left flank sequence
+        if pos+1 < self.nullomer_len:
+            left_flank = self.genome_dict[chrom_key][:pos]
+        else:
+            left_flank = self.genome_dict[chrom_key][pos - self.nullomer_len + 1: pos]
+        
+        return left_flank
+    
+    def _generate_right_flank(self, chrom_key, pos, deletion_length=0):
+        """
+        Captures the genomic sequence following a variant.
+        """
+        # if ref_len > 1, this is a deletion or complex indel. These cases are handled the same
+        if (pos + deletion_length + self.nullomer_len) > self.genome_length_dict[chrom_key]:
+            right_flank = self.genome_dict[chrom_key][pos+deletion_length+1:]
+        else:
+            right_flank = self.genome_dict[chrom_key][pos+deletion_length+1: pos+deletion_length+self.nullomer_len]
+
+        return right_flank
+
+    def _scan_motif_for_nullomers(self, motif):
+        """
+        given a list of DNA motifs, this function finds the ones that has nullomers in them. 
+
+        Arguments:
+            motif::string
+                Variant motif that is being scanned for nullomers
+            
+        Returns:
+            nullomers_created::[string]
+                List of nullomers that are contained in the variant motif and the variant motif's reverse complement.
+        """
+        nullomers_created = []
+        motif_len = len(motif)
+        # make sure to check reverse complements as well
+        motif_rc = str(Seq(motif).reverse_complement())
+
+        # scan the motifs for nullomers
+        for i in range(0, motif_len-self.nullomer_len+1):
+            subsequence = motif[i:i+self.nullomer_len]
+            rc_subsequence = motif_rc[i:i+self.nullomer_len]
+            # save nullomer-causing mutations in "chr, pos, ref, alt, nullomers_created" format
+            if subsequence in self.nullomer_set:
+                nullomers_created.append(subsequence)
+            if rc_subsequence in self.nullomer_set:
+                nullomers_created.append(rc_subsequence)
+        
+        return nullomers_created
+
+    
+    def _generate_snp_insertion_variant_sequences_and_scan(self, chrom_number, pos, left_flank, ref_base, right_flank, all_nullomer_variants_list):
+        """
+        Generates variant motif sequences at a certain position on a specified chromosome. Then scans these generated motifs for 
+        nullomers and adds them to a global list. This helper function handles SNP and insertions specifically.
+        """
+        dna_bases = {"A", "C", "T", "G"}
+        # generate variant motifs that occur from SNPs and small (1 bp) insertions. Then scan these motifs for nullomers.
+        for dna_base in dna_bases:
+            #generate the variant motif and scan it for nullomers
+            # handle snps
+            if dna_base != ref_base:
+                snp_variant_motif = left_flank + dna_base + right_flank
+                snp_nullomers = self._scan_motif_for_nullomers(snp_variant_motif)
+                if snp_nullomers:
+                    # put together list of needed information (chrom, pos, ref, alt, variant_motif, nullomers_created)
+                    info = (chrom_number, pos+1, ref_base, dna_base, snp_variant_motif, snp_nullomers)
+                    all_nullomer_variants_list.append(info)
+            
+            # handle insertions
+            insertion_variant_motif = left_flank + ref_base + dna_base + right_flank
+            insertion_nullomers = self._scan_motif_for_nullomers(insertion_variant_motif)
+            if insertion_nullomers:
+                # put together list of needed information (chrom, pos, ref, alt, variant_motif, nullomers_created)
+                info = (chrom_number, pos+1, ref_base, ref_base+dna_base, insertion_variant_motif, insertion_nullomers)
+                all_nullomer_variants_list.append(info)
+    
+    def _generate_deletion_variant_sequences_and_scan(self,chrom_number, pos, left_flank, ref_genotype, right_flank, all_nullomer_variants_list):
+        """
+        Generates variant motif sequences at a certain position on a specified chromosome. Then scans these generated motifs for 
+        nullomers and adds them to a global list. This helper function handles SNP and insertions specifically.
+        """
+        # generate variant motif from small (1 bp) deletion. Add this to nullomer causing variant list if nullomers are created
+        ref_base = ref_genotype[0]
+        deletion_variant_motif = left_flank + ref_base + right_flank
+        deletion_nullomers = self._scan_motif_for_nullomers(deletion_variant_motif)
+        if deletion_nullomers:
+            # put together list of needed information (chrom, pos, ref, alt, variant_motif, nullomers_created)
+            # handle the alt allele differently if this is the last position on the chromosome
+            info = (chrom_number, pos+1, ref_genotype, ref_base, deletion_variant_motif, deletion_nullomers)
+            all_nullomer_variants_list.append(info)
+
+
+
+    def find_almost_nullomers(self, indel_size=1):
+        """
+        With a nullomer set and genome, this method generates a list of mutations that cause a nullomer to arise in the given genome.
+        Performs the main analysis of this Class
+
+        Arguments:
+            indel_size::int
+                Default=1. Size of indels that will be considered
+        
+        Returns:
+            all_nullomer_variants::list
+                List of tuples that contain information for each nullomer causing mutations in format:
+                chr, pos, ref_allele, alt_allele, variant_motif, nullomers_created
+        """
+        all_nullomer_variants = []
+        dna_bases = {"A", "C", "G", "T"}
+        
+        for chromosome, sequence in self.genome_dict.items():
+            chrom_number = chromosome.strip("chr")
+            
+            # loop through each base in the chromosome/sequence 
+            for pos, base in enumerate(sequence):
+                
+                left_flank = self._generate_left_flank(chromosome, pos)
+                # if this flank contains a non-canonical base, skip onto the next base
+                if not self.check_bases(left_flank):
+                    continue
+
+                # handle snps and insertions
+                snp_insertion_right_flank = self._generate_right_flank(chromosome, pos)
+                if self.check_bases(snp_insertion_right_flank):
+                    self._generate_snp_insertion_variant_sequences_and_scan(chrom_number, pos, left_flank, base, snp_insertion_right_flank,all_nullomer_variants)
+                
+                # handle deletions
+                deletion_right_flank = self._generate_right_flank(chromosome, pos, deletion_length=indel_size)
+                if deletion_right_flank and self.check_bases(deletion_right_flank):
+                    deletion_ref_genotype = sequence[pos:pos+indel_size+1]
+                    self._generate_deletion_variant_sequences_and_scan(chrom_number, pos, left_flank, deletion_ref_genotype, deletion_right_flank, all_nullomer_variants)
+            
+        return all_nullomer_variants
+
+    @staticmethod
+    def write_output(output_filepath, mutations):
+        """
+        Writes an output file given a list of lines, where each item in a line is a single item in a list. 
+
+        Arguments:
+            output_filepath::string
+                Path to where the output file will be stored
+            mutations::List
+                List of mutation information for each nullomer-creating mutation
+        
+        Returns:
+            None
+        """
+        with open(output_filepath, "w") as mutation_file:
+            mutation_file.write("#chr\tpos\tid\tref\talt\tvariant_motif\tnullomers_created\n")
+            for mutation in mutations:
+                chr, pos, ref, alt, variant_motif, nullomers_created = mutation
+                mutation_file.write(str(chr)+"\t"+str(pos)+"\t"+".\t"+ref+"\t"+alt+"\t"+variant_motif+"\t")
+                for i,null in enumerate(nullomers_created):
+                    if i == len(nullomers_created)-1:
+                        mutation_file.write(null)
+                    else:
+                        mutation_file.write(null + ",")
+                mutation_file.write("\n")
+
+            
 
 if __name__ == "__main__":
-    time_stamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())  # To add timestamp to output file names
-    if not os.path.exists("output2/"):
-        os.makedirs("output2/")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--genome_filepath', help='Path to the fasta file containing the genome being analyzed', type=str)
+    parser.add_argument('--nullomer_input_filepath', help='Path to the .txt file containing the nullomers absent from the supplied genome', type=str)
+    parser.add_argument('--output_filepath', help="Path to the output file containing nullomer-causing variants", type=str)
+    parser.add_argument('--nullomer_length', help="Length of nullomers being analyzed", type=int)
 
-    # Load the nullomers in a python set
-    tic = time.perf_counter()
-    nul_set = nul_file_reader(nul_file_path)
-    toc = time.perf_counter()
+    args = parser.parse_args()
 
-    # Measure time it took to load nullomers
-    nul_read_time = "Loaded the nullomer file to memory in {:5f} seconds\n".format(toc - tic)
-
-    file_name = "output2/" + time_stamp + "_mut_to_nul" + str(N) + "_timer" + ".txt"
-    with open(file_name, "a") as time_file:
-        time_file.write(nul_read_time)
-
-    # Read the genome file
-    fasta_sequences = SeqIO.parse(open(genome_file_path), 'fasta')
-
-    # Run the main analysis function and store the output in a file
-    for fasta in fasta_sequences:
-        name, sequence = fasta.id, str(fasta.seq)
-
-        # Add a dummy character at the start and end of the sequence, since mutate discards the two exterior
-        # characters
-        sequence = "s" + sequence + "s"
-
-        tic = time.perf_counter()
-        mut_nul_set = analysis(name, sequence)
-        toc = time.perf_counter()
-
-        output_writer(mut_nul_set, time_stamp)
-
-        # Measure the time it took to run the analysis function on the entire sequence
-        mut_analysis_time = "Iterated through all possible mutations of sequence \"{}\" in {:0.5f} seconds\n".format(name, toc - tic)
-
-        # Write the time it took to process the sequence in a file
-        file_name = "output2/" + time_stamp + "_mut_to_nul" + str(N) + "_timer" + ".txt"
-        with open(file_name, "a") as time_file:
-            time_file.write(mut_analysis_time)
+    nullomerator = FindAlmostNullomers(genome_file=args.genome_file, 
+                                       nullomer_file=args.nullomer_file,
+                                       nullomer_length=args.nullomer_length)
+    found_nullomers = nullomerator.find_almost_nullomers()
+    FindAlmostNullomers.write_output(args.output_filepath, found_nullomers)
