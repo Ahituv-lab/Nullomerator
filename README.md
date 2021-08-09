@@ -35,7 +35,7 @@ Biopython: https://biopython.org/
 
 ## Test Directions
 
-A small example is provided for demonstration and to ensure that you have the necessary dependencies installed. An example set of files are included along with a script that executes the four tools included in this repository (EnumerateNullomers, ExtractMutationNullomers, FindAlmostNullomers, FindNullomerVariants) in sequence. To execute, navigate into `tiny_genome_example` and run the script with:
+A small example is provided for demonstration and to ensure that you have the necessary dependencies installed. An example set of files are included along with a script that executes the four tools included in this repository (EnumerateNullomers, ExtractMutationNullomers, FindAlmostNullomers, FindNullomerVariants) in sequence. To execute, navigate your terminal into `tiny_genome_example` and run the script with:
 ```
 bash test_4tools.sh
 ```
