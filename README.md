@@ -33,6 +33,13 @@ Performs the identification of nullomers in raw read samples
 
 Biopython: https://biopython.org/
 
+## Test Directions
+
+A small example is provided for demonstration and to ensure that you have the necessary dependencies installed. An example set of files are included along with a script that executes the four tools included in this repository (EnumerateNullomers, ExtractMutationNullomers, FindAlmostNullomers, FindNullomerVariants) in sequence. To execute, navigate your terminal into `tiny_genome_example` and run the script with:
+```
+bash test_4tools.sh
+```
+
 ## Documentation (Draft, to assist with testing)
 
 ### EnumerateNullomers
@@ -128,7 +135,7 @@ python3 FindNullomerVariants.py --population_variants_input_file --nullomer_muta
 
 **Main Arguments**
 
-###### `--population_variants_input_file`
+###### `--population_variants_input_filepath`
 Path to the input variant file containing common population variants.
 
 ###### `--nullomer_mutations_input_filepath`
