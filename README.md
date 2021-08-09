@@ -39,11 +39,11 @@ Biopython: https://biopython.org/
 
 The command for running EnumerateNullomers is as follows:
 ```
-python3 EnumerateNullomers.py --genome_file --nullomer_output_filepath --kmer_output_filepath --kmer_length
+python3 EnumerateNullomers.py --genome_filepath --nullomer_output_filepath --kmer_output_filepath --kmer_length
 ```
 **Main arguments**
 
-###### `--genome_file`
+###### `--genome_filepath`
 Path to the fasta file containing the genome being analyzed. This file must be formatted such that the FASTA headers read ">chr1", ">chr2", "chr3", ... , "chrX", "chrY".
 
 ###### `--nullomer_output_filepath`
@@ -55,4 +55,30 @@ Path to the output .tsv file where the kmers, and their corresponding occurrence
 ###### `--kmer_length`
 Length of kmers/nullomers to be enumerated.
 
-===================================================================================================================================================================
+
+### ExtractMutationNullomers
+
+The command for running ExtractMutationNullomers is as follows:
+```
+python3 ExtractMutationNullomers.py --genome_filepath --nullomer_filepath --kmer_output_filepath --kmer_length
+```
+**Main arguments**
+
+###### `--genome_filepath`
+Path to the fasta file containing the genome being analyzed. This file must be formatted such that the FASTA headers read ">chr1", ">chr2", "chr3", ...
+
+###### `--nullomer_input_filepath`
+Path to the .txt file containing the nullomers absent from the supplied genome.
+
+###### `--mutation_input_filepath`
+Path to the file containing the variants being analyzed by this tool.
+
+###### `--mutation_output_filepath`
+Path to the output file where the nullomer-causing mutations will be written to.
+
+##### `--nullomer_length`
+Length of nullomers being analyzed.
+
+**Optional Arguments**
+
+
