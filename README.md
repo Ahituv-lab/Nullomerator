@@ -98,3 +98,46 @@ Column number of input variant file indicating the alternative allele (Default=4
 
 ### FindAlmostNullomers
 
+The command for running FindAlmostNullomers is as follows:
+```
+python3 FindAlmostNullomers.py --genome_filepath --nullomer_input_filepath --output_filepath --nullomer_length
+```
+
+**Main Arguments**
+
+###### `--genome_filepath`
+Path to the fasta file containing the genome being analyzed. This file must be formatted such that the FASTA headers read ">chr1", ">chr2", "chr3", ...
+
+###### `--nullomer_input_filepath`
+Path to the .txt file containing the nullomers absent from the supplied genome.
+
+###### `--output_filepath`
+Path to the output file containing nullomer-causing variants.
+
+###### `--nullomer_length`
+Length of nullomers being analyzed.
+
+---
+
+### FindAlmostNullomers
+
+The command for running FindNullomerVariants is as follows:
+```
+python3 FindNullomerVariants.py --population_variants_input_file --nullomer_mutations_input_file --population_variants_output_file --non_population_variants_output_file
+```
+
+###### `--population_variants_input_file`
+Path to the input variant file containing common population variants.
+
+###### `--nullomer_mutations_input_filepath`
+Path to the input variant file containing mutations that cause neomers.
+
+###### `--population_variants_output_filepath`
+Path of the output file containing neomer-causing population variants.
+
+###### `--non_population_variants_output_filepath`
+Path of the output file containing nullomer-causing non-population variants
+
+
+
+
