@@ -126,6 +126,8 @@ The command for running FindNullomerVariants is as follows:
 python3 FindNullomerVariants.py --population_variants_input_file --nullomer_mutations_input_file --population_variants_output_file --non_population_variants_output_file
 ```
 
+**Main Arguments**
+
 ###### `--population_variants_input_file`
 Path to the input variant file containing common population variants.
 
