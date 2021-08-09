@@ -128,7 +128,7 @@ python3 FindNullomerVariants.py --population_variants_input_file --nullomer_muta
 
 **Main Arguments**
 
-###### `--population_variants_input_file`
+###### `--population_variants_input_filepath`
 Path to the input variant file containing common population variants.
 
 ###### `--nullomer_mutations_input_filepath`
