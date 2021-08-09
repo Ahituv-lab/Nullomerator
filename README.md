@@ -37,17 +37,13 @@ Biopython: https://biopython.org/
 
 ### EnumerateNullomers
 
-The command for running EnumerateNullomers is as follows
+The command for running EnumerateNullomers is as follows:
 ```
 python3 EnumerateNullomers.py --genome_file --nullomer_output_filepath --kmer_output_filepath --kmer_length
-
 ```
 
-```
---genome_file
-```
+#### `--genome_file`
 Path to the fasta file containing the genome being analyzed. This file must be formatted such that the FASTA headers read ">chr1", ">chr2", "chr3", ... , "chrX", "chrY".
-```
---nullomer_output_filepath
-```
+
+#### `--nullomer_output_filepath`
 Path to the output .txt file where the nullomers absent in the supplied genome will be written
