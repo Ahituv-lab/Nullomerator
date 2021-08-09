@@ -61,7 +61,7 @@ Length of kmers/nullomers to be enumerated.
 
 The command for running ExtractMutationNullomers is as follows:
 ```
-python3 ExtractMutationNullomers.py --genome_filepath --nullomer_filepath --kmer_output_filepath --kmer_length
+python3 ExtractMutationNullomers.py --genome_filepath --nullomer_input_filepath --mutation_input_filepath --mutation_output_filepath --nullomer_length
 ```
 **Main arguments**
 
@@ -91,6 +91,10 @@ Column number of input variant file indicating the variant position (Default=1, 
 ###### `--ref_col`
 Column number of input variant file indicating the reference allele (Default=3, for .vcf format)
 
-###### `alt_col`
+###### `--alt_col`
 Column number of input variant file indicating the alternative allele (Default=4, for .vcf format)
+
+---
+
+### FindAlmostNullomers
 
