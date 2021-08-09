@@ -1,7 +1,7 @@
-import FindAlmostNullomers_rle as fan
+import FindAlmostNullomers as fan
 
 def test_generate_left_flank():
-    finder = fan.FindAlmostNullomers("sample_data3/tiny_genome.fa", "sample_data3/tiny_genome_3nullomers.txt", 3)
+    finder = fan.FindAlmostNullomers("test/test_example/tiny_genome.fa", "test/test_example/tiny_genome_3nullomers.txt", 3)
 
     assert(finder._generate_left_flank("chr1", 0) == "")
     assert(finder._generate_left_flank("chr1", 1) == "A")
@@ -18,7 +18,7 @@ def test_generate_left_flank():
 
 
 def test_generate_right_flank():
-    finder = fan.FindAlmostNullomers("sample_data3/tiny_genome.fa", "sample_data3/tiny_genome_3nullomers.txt", 3)
+    finder = fan.FindAlmostNullomers("test/test_example/tiny_genome.fa", "test/test_example/tiny_genome_3nullomers.txt", 3)
 
     assert(finder._generate_right_flank("chr1", 0, deletion_length=0) == "CG")
     assert(finder._generate_right_flank("chr1", 1, deletion_length=0) == "GT")
@@ -35,7 +35,7 @@ def test_generate_right_flank():
 
 
 def test_scan_motif_for_nullomers():
-    finder = fan.FindAlmostNullomers("sample_data3/tiny_genome.fa", "sample_data3/tiny_genome_3nullomers.txt", 3)
+    finder = fan.FindAlmostNullomers("test/test_example/tiny_genome.fa", "test/test_example/tiny_genome_3nullomers.txt", 3)
 
     assert(set(finder._scan_motif_for_nullomers("GACAA")) == set(["ACA", "CAA", "TTG", "TGT"]))
     assert(finder._scan_motif_for_nullomers("ACGTC") == [])

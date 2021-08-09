@@ -1,0 +1,10 @@
+AC	3
+CG	2
+GT	3
+TC	1
+CT	1
+TG	2
+GC	2
+CA	2
+GA	1
+AG	1

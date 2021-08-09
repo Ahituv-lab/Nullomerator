@@ -1,7 +1,7 @@
 import FindNullomerVariants as fnv
 
 def test_mutation_reader():
-    finder = fnv.FindNullomerVariants("sample_data3/tiny_genome_pop_variants.txt", "sample_data3/nullomer-generating_mutations.tsv")
+    finder = fnv.FindNullomerVariants("test/test_example/tiny_genome_pop_variants.txt", "test/test_example/nullomer-generating_mutations.tsv")
     known_pop_variants = [("1","1","A","C"),
                             ("1","1","A","AG"),
                             ("1","1","AC","A"),
@@ -20,7 +20,7 @@ def test_mutation_reader():
     assert(len(finder.nullomer_variants) == 82)
 
 def test_nullomer_finder():
-    finder = fnv.FindNullomerVariants("sample_data3/tiny_genome_pop_variants.txt", "sample_data3/nullomer-generating_mutations.tsv")
+    finder = fnv.FindNullomerVariants("test/test_example/tiny_genome_pop_variants.txt", "test/test_example/nullomer-generating_mutations.tsv")
     pop_variants, true_nul_variants = finder.find_nullomer_variants()
 
     assert(len(true_nul_variants) == 73)

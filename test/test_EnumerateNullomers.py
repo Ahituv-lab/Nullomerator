@@ -3,13 +3,13 @@ import itertools
 
 def test_genome_reader():
     # generate an enumerate nullomers object
-    enumerator = en.EnumerateNullomers(genome_fasta="sample_data3/tiny_genome.fa", kmer_length=2)
+    enumerator = en.EnumerateNullomers(genome_fasta="test/test_example/tiny_genome.fa", kmer_length=2)
     read_genome = enumerator.genome_sequences
     assert(read_genome == ["ACGTC", "ACTGCA"])
 
 def test_count_2mers():
     # generate an enumerate nullomers object
-    enumerator = en.EnumerateNullomers(genome_fasta="sample_data3/tiny_genome.fa", kmer_length=2)
+    enumerator = en.EnumerateNullomers(genome_fasta="test/test_example/tiny_genome.fa", kmer_length=2)
     kmer_counts = enumerator._count_genome_kmers()
     kmers_present = [kmer for kmer in kmer_counts.keys()]
     kmer_counts = [kmer for kmer in kmer_counts.values()]
@@ -21,13 +21,13 @@ def test_count_2mers():
 
 def test_2nullomer_id():
     # generate an enumerate nullomers object
-    enumerator = en.EnumerateNullomers(genome_fasta="sample_data3/tiny_genome.fa", kmer_length=2)
+    enumerator = en.EnumerateNullomers(genome_fasta="test/test_example/tiny_genome.fa", kmer_length=2)
     nullomers, kmer_counts = enumerator.enumerate()
     assert(nullomers == set(["AT", "AA", "CC", "GG", "TT", "TA"]))
 
 def test_count_3mers():
     # generate an enumerate nullomers object
-    enumerator = en.EnumerateNullomers(genome_fasta="sample_data3/tiny_genome.fa", kmer_length=3)
+    enumerator = en.EnumerateNullomers(genome_fasta="test/test_example/tiny_genome.fa", kmer_length=3)
     kmer_counts = enumerator._count_genome_kmers()
     kmers_present = [kmer for kmer in kmer_counts.keys()]
     kmer_counts = [kmer for kmer in kmer_counts.values()]
@@ -38,7 +38,7 @@ def test_count_3mers():
 
 def test_3nullomer_id():
     # generate an enumerate nullomers object
-    enumerator = en.EnumerateNullomers(genome_fasta="sample_data3/tiny_genome.fa", kmer_length=3)
+    enumerator = en.EnumerateNullomers(genome_fasta="test/test_example/tiny_genome.fa", kmer_length=3)
     nullomers, kmer_counts = enumerator.enumerate()
     kmers_present = [kmer_info[0] for kmer_info in kmer_counts]
     all_3mers = set([''.join(p) for p in itertools.product(["A", "C", "G", "T"], repeat=3)])
