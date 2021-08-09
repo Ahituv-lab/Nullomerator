@@ -34,3 +34,9 @@ Performs the identification of nullomers in raw read samples
 Biopython: https://biopython.org/
 
 ## Documentation (Draft, to assist with testing)
+
+**EnumerateNullomers**
+
+```
+python3 EnumerateNullomers.py --genome_file --nullomer_output_filepath --kmer_output_filepath --kmer_length
+```
