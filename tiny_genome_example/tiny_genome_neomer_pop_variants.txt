@@ -1,0 +1,11 @@
+#chr	pos	id	ref	alt	variant_motif	variant_motif_interval	nullomers_created
+1	1	.	A	C	CCGT	CCGT,ACGG	
+1	1	.	A	AG	AGCGT	AGCG,ACGC,GCGT,CGCT	
+1	1	.	AC	A	AGTC	AGTC,GACT	
+1	3	.	G	T	ACTTC	ACTT,GAAG,CTTC,AAGT	
+1	5	.	C	A	CGTA	CGTA,TACG	
+1	5	.	C	CA	CGTCA	TGAC,GTCA	
+1	5	.	C	T	CGTT	CGTT,AACG	
+X	1	.	A	G	GCTG	GCTG,CAGC	
+X	3	.	T	A	ACAGCA	ACAG,TGCT,CAGC,GCTG,AGCA,CTGT	
+X	6	.	A	T	TGCT	TGCT,AGCA	

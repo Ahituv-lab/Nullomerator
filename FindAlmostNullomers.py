@@ -245,8 +245,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    nullomerator = FindAlmostNullomers(genome_file=args.genome_file, 
-                                       nullomer_file=args.nullomer_file,
+    nullomerator = FindAlmostNullomers(genome_file=args.genome_filepath, 
+                                       nullomer_file=args.nullomer_input_filepath,
                                        nullomer_length=args.nullomer_length)
     found_nullomers = nullomerator.find_almost_nullomers()
     FindAlmostNullomers.write_output(args.output_filepath, found_nullomers)

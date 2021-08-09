@@ -11,9 +11,8 @@ class EnumerateNullomers():
     counts for each kmer that DOES appear in the genome. Returns both of these tables as files. 
     """
 
-    def __init__(self, genome_fasta, kmer_length, range = False):
+    def __init__(self, genome_fasta, kmer_length):
         self.kmer_len = kmer_length
-        self.range = range
         self._genome_reader(genome_fasta)
     
     @staticmethod
@@ -60,30 +59,16 @@ class EnumerateNullomers():
         kmer_counts = Counter()
 
         # count kmer occurrences for a range of kmer lengths from 1...self.kmer_len
-        if self.range == True:
-            for kmer_len in range(1, self.kmer_len + 1):
-                for seq in self.genome_sequences:
-                    for i in range(0, len(seq)+1-kmer_len):
-                        motif = seq[i:i+kmer_len]
-                        if self.check_bases(motif):
-                            kmer_counts[motif] += 1
-                for seq in genome_rcs:
-                    for im in range(0, len(seq)+1-kmer_len):
-                        motif = seq[im:im+kmer_len]
-                        if self.check_bases(motif):
-                            kmer_counts[motif] += 1
-        # count kmer occurrences for only kmers of length self.kmer_len
-        else:
-            for seq in self.genome_sequences:
-                for i in range(0, len(seq)+1-self.kmer_len):
-                    motif = seq[i:i+self.kmer_len]
-                    if self.check_bases(motif):
-                        kmer_counts[motif] += 1
-            for seq in genome_rcs:
-                for im in range(0, len(seq)+1-self.kmer_len):
-                    motif = seq[im:im+self.kmer_len]
-                    if self.check_bases(motif):
-                        kmer_counts[motif] += 1
+        for seq in self.genome_sequences:
+            for i in range(0, len(seq)+1-self.kmer_len):
+                motif = seq[i:i+self.kmer_len]
+                if self.check_bases(motif):
+                    kmer_counts[motif] += 1
+        for seq in genome_rcs:
+            for im in range(0, len(seq)+1-self.kmer_len):
+                motif = seq[im:im+self.kmer_len]
+                if self.check_bases(motif):
+                    kmer_counts[motif] += 1
 
         return kmer_counts
     
@@ -96,16 +81,10 @@ class EnumerateNullomers():
         
         Returns:
             all_kmers::[str]
-
         """
         bases = ["A", "C", "T", "G"]
-        all_kmers = []
         # only generate kmers of certain length if range == False
-        if self.range == True:
-            for kmer_len in range(1, self.kmer_len+1):
-                all_kmers+=[''.join(p) for p in itertools.product(bases, repeat=kmer_len)]
-        else:
-            all_kmers+=[''.join(p) for p in itertools.product(bases, repeat=self.kmer_len)]
+        all_kmers = [''.join(p) for p in itertools.product(bases, repeat=self.kmer_len)]
 
         return all_kmers
 
@@ -139,24 +118,24 @@ if __name__ == "__main__":
     start = time.time()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('--genome_file', help='Put in the path to the fasta file containing the genome being analyzed', type=str)
-    parser.add_argument('--nullomer_output_file', help='Put in the path to the output .txt file where the nullomers absent from the supplied genome will be written', type=str)
-    parser.add_argument('--kmer_output_file', help='Put in the path to the output .tsv file where the kmers present from the supplied genome will be written', type=str)
-    parser.add_argument('--kmer_length', help="Supply the length of kmers/nullomers being enumerated", type=int)
+    parser.add_argument('--genome_filepath', help='Path to the fasta file containing the genome being analyzed', type=str)
+    parser.add_argument('--nullomer_output_filepath', help='Path to the output .txt file where the nullomers absent in the supplied genome will be written', type=str)
+    parser.add_argument('--kmer_output_filepath', help='Path to the output .tsv file where the kmers, and their corresponding counts, from the supplied genome will be written', type=str)
+    parser.add_argument('--kmer_length', help="Length of kmers/nullomers to be enumerated", type=int)
 
     args = parser.parse_args()
 
     # if youre using this script, you can put your desired kmer length below
-    enumerator = EnumerateNullomers(genome_fasta=args.genome_file, kmer_length=args.kmer_length)
+    enumerator = EnumerateNullomers(genome_fasta=args.genome_filepath, kmer_length=args.kmer_length)
     nullomers, kmers = enumerator.enumerate()
 
     # write output file of genome kmers (kmer with count on same line)
-    with open(args.kmer_output_file, "w") as kmer_file:
+    with open(args.kmer_output_filepath, "w") as kmer_file:
         for kmer, count in kmers:
             kmer_file.write(kmer + "\t" + str(count) + "\n")
 
     # write output file of nullomers (one nullomer per line)
-    with open(args.nullomer_output_file, "w") as nullomer_file:
+    with open(args.nullomer_output_filepath, "w") as nullomer_file:
         for nullomer in nullomers:
             nullomer_file.write(nullomer + "\n")
 

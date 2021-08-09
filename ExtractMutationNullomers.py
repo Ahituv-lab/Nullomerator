@@ -228,11 +228,11 @@ class ExtractMutationNullomers():
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--genome_file', help='Put in the path to the fasta file containing the genome being analyzed', type=str)
-    parser.add_argument('--nullomer_file', help='Put in the path to the .txt file containing the nullomers absent from the supplied genome', type=str)
-    parser.add_argument('--mutation_input_file', help='Put in the path to the vcf file containing the mutations being analyzed by this tool', type=str)
-    parser.add_argument('--mutation_output_file', help='Put in the path to the output file where the nullomer-causing mutations will be written to', type=str)
-    parser.add_argument('--nullomer_length', help="Supply the length of nullomers being analyzed", type=int)
+    parser.add_argument('--genome_filepath', help='Path to the fasta file containing the genome being analyzed', type=str)
+    parser.add_argument('--nullomer_input_filepath', help='Path to the .txt file containing the nullomers absent from the supplied genome', type=str)
+    parser.add_argument('--mutation_input_filepath', help='Path to the file containing the variants being analyzed by this tool', type=str)
+    parser.add_argument('--mutation_output_filepath', help='Path to the output file where the neomer-causing mutations will be written to', type=str)
+    parser.add_argument('--nullomer_length', help="Length of nullomers being analyzed", type=int)
     parser.add_argument("--chr_col", help="(Optional) Column number of input variant file indicating the variant chromosome (Default=0, for .vcf format)", default=0, type=int)
     parser.add_argument("--pos_col", help="(Optional) Column number of input variant file indicating the variant position (Default=1, for .vcf format)", default=1,type=int)
     parser.add_argument("--ref_col", help="(Optional) Column number of input variant file indicating the reference allele (Default=3, for .vcf format)", default=3, type=int)
@@ -240,10 +240,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    example_scanner = ExtractMutationNullomers(genome_fasta=args.genome_file, nullomer_file=args.nullomer_file, nullomer_len=args.nullomer_length)
-    mutations = example_scanner.scan_mutations(args.mutation_input_file, chr_col=args.chr_col, pos_col=args.pos_col, ref_col=args.ref_col, alt_col=args.alt_col)
+    example_scanner = ExtractMutationNullomers(genome_fasta=args.genome_filepath, nullomer_file=args.nullomer_input_filepath, nullomer_len=args.nullomer_length)
+    mutations = example_scanner.scan_mutations(args.mutation_input_filepath, chr_col=args.chr_col, pos_col=args.pos_col, ref_col=args.ref_col, alt_col=args.alt_col)
     
     # write the output file. if you are using this, just change the output filepath to your desired location 
-    ExtractMutationNullomers.write_output(args.mutation_output_file, mutations)
+    ExtractMutationNullomers.write_output(args.mutation_output_filepath, mutations)
     
             
