@@ -126,7 +126,7 @@ Length of nullomers being analyzed.
 
 ---
 
-### FindAlmostNullomers
+### FindNullomerVariants
 
 The command for running FindNullomerVariants is as follows:
 ```
