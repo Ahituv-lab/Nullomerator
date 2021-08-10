@@ -162,6 +162,9 @@ Column number of input variant file indicating the reference allele (Default=3, 
 ###### `--alt_col`
 Column number of input variant file indicating the alternative allele (Default=4, for .vcf format)
 
+###### `--freq_col`
+Column number of input population variant file indicating frequency of the alternative allele (MAF) (Default=5)
+
 
 
 
