@@ -90,14 +90,10 @@ class ExtractMutationNullomers():
         if pos < self.nullomer_len:
             left_flank = self.genome_dict[chrom_key][:pos - 1]
         else:
-            if ref_len == 1 and alt_len > 1:#INSERTION
+            if (ref_len == 1 and alt_len > 1) or (ref_len > 1 and alt_len == 1):#INSERTION or DELETION
                 left_flank = self.genome_dict[chrom_key][pos - self.nullomer_len + 1: pos - 1]
-            elif ref_len > 1 and alt_len == 1:#DELETION
-                left_flank = self.genome_dict[chrom_key][pos - self.nullomer_len + 1: pos - 1]
-            elif ref_len == 1 and alt_len == 1:#SNP
+            else:#SNP or COMPLEX INDEL
                 left_flank = self.genome_dict[chrom_key][pos - self.nullomer_len : pos - 1]
-            else:
-                raise ValueError("Complex indels not currently supported.")
         
         return left_flank
     
