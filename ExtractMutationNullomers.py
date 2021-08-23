@@ -65,7 +65,7 @@ class ExtractMutationNullomers():
         self.nullomer_set = nullomer_set
         print("Nullomer read-in complete")
 
-    def _mutation_reader(self, mutation_file, comments):
+    def _mutation_reader(self, mutation_file, chr_col, pos_col, ref_col, alt_col, comments):
         """ 
         reads in a vcf file holding mutation data and returns each line as a list with each word in the line as an element
         """
@@ -73,10 +73,18 @@ class ExtractMutationNullomers():
         file_lines = datafile.readlines()
         datafile.close()
         mutation_data = []
+        print(chr_col, pos_col, ref_col, alt_col)
         for i in file_lines:
             # if this isnt a comment line, break it up and save it because it contains mutation data
             if i[0] != comments and i != "":
-                mutation_data+=[i.strip().split('\t')]
+                item = i.strip().split('\t')
+                chrom, pos, ref, alt = item[chr_col], int(item[pos_col]), item[ref_col].upper(), item[alt_col].upper()
+                meta_data = [item[i] for i in range(len(item)) if i not in [chr_col, pos_col, ref_col, alt_col]]
+                # handle lines where there is more than one alternative allele
+                alt_alleles = alt.split(",")
+                for alt_allele in alt_alleles:
+                    print(chrom, pos, ref, alt_allele)
+                    mutation_data.append((chrom,pos,ref, alt_allele.strip(), meta_data))
 
         return mutation_data
 
@@ -138,18 +146,21 @@ class ExtractMutationNullomers():
             nullomer_mutations::list
                 A list of all of the input variants with relevant information added. For each variant, the chr, pos, reference allele, alternative allele, and nullomers it creates are returned.
             """
-        mutation_data = self._mutation_reader(mutation_file, comments="#")
+        mutation_data = self._mutation_reader(mutation_file, chr_col, pos_col, ref_col, alt_col, comments="#")
         print("Mutation read-in complete, starting mutation scan")
         nullomer_mutations = []
         for item in mutation_data:
-            chrom, pos, ref, alt = item[chr_col], int(item[pos_col]), item[ref_col].upper(), item[alt_col].upper()
-            meta_data = [item[i] for i in range(len(item)) if i not in [chr_col, pos_col, ref_col, alt_col]]
+            chrom, pos, ref, alt = item[0], int(item[1]), item[2].upper(), item[3].upper()
+            # if this is absent due to an overlapping deletion, skip the analysis for this variant
+            if alt == "*":
+                continue
 
-            # generate the mutated sequence, and its reverse complement
+            # handle non-accepted encodings of alt allele
             if alt == "." or alt == "-" or alt == "":
                 error = "error at variant " + chrom+str(pos)+ref+alt+": Deletions must be represented in proper VCF format." 
                 raise ValueError(error)
-
+            
+            chrom_strip = chrom.strip("chr")
             try:
                 chrom_int = int(chrom)
                 chrom_key = "chr" + chrom
@@ -162,7 +173,8 @@ class ExtractMutationNullomers():
             # get the left and right flank
             left_flank = self._generate_left_flank(chrom_key, pos, ref_len, alt_len)
             right_flank = self._generate_right_flank(chrom_key, pos, ref_len)
-                
+            
+            # generate the mutated sequence, and its reverse complement
             variant_motif = left_flank + alt + right_flank
             variant_rc = str(Seq(variant_motif).reverse_complement())
             motif_len = len(variant_motif)
