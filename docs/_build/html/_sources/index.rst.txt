@@ -6,15 +6,99 @@
 Welcome to Nullomerator's documentation!
 ========================================
 
+.. centered:: Description stub
+
+**Quick Summary**
+
+    Brief summary of the problems and settings Nullomerator can be applied to.
+
+**Installation**
+
+    Instructions for the installation of Nullomerator.
+
+**Introduction**
+
+    Background information regarding neomers and their application to cancer detection.  
+
+**Tutorial**
+
+    We have developed a tutorial that explains how to implement each function and uses brief examples for each function to different biological problems.
+
+**Instructions**
+
+    Information on how to implement each of the different functions.
+
+    :doc:`EnumerateNullomers <../enumerate_nullomers>` 
+
+    :doc:`ExtractMutationNullomers <../extract_mutation_nullomers>` 
+
+    :doc:`FindAlmostNullomers <../find_almost_nullomers>`
+
+    :doc:`FindNullomerVariants <../find_nullomer_variants>`
+
+
+
+**License**
+
+    Asymmetron is freely available under the APACHE LICENSE, VERSION 2.0 - The software can be freely used, modified or added to other pipelines and workflows.
+
+
+**Support**
+
+    Contact information for questions, ideas, feature requests and potential bug reports.
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :name: Asymmetron-Quick-Summary
+    :maxdepth: 1
+    :hidden:
+
+    quick_summary
+
+.. toctree::
+    :name: Asymmetron-install
+    :maxdepth: 1
+    :hidden:
+
+    install
 
 
+.. toctree::
+    :name: Asymmetron-introduction
+    :maxdepth: 1
+    :hidden:
 
-Indices and tables
-==================
+    introduction
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+.. toctree::
+    :name: Nullomerator-instructions
+    :maxdepth: 2
+    :hidden:
+
+    enumerate_nullomers
+    extract_mutation_nullomers
+    find_almost_nullomers
+    find_nullomer_variants
+
+.. toctree::
+    :name: Asymmetron-tutorial
+    :maxdepth: 1
+    :hidden:
+
+    tutorial
+
+
+.. toctree::
+    :name: Asymmetron-Licence
+    :maxdepth: 1
+    :hidden:
+
+    licence
+
+
+.. toctree::
+    :name: Asymmetron-Support
+    :maxdepth: 1
+    :hidden:
+
+    support

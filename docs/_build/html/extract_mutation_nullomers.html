@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExtractMutationNullomers &#8212; Nullomerator  documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FindAlmostNullomers" href="find_almost_nullomers.html" />
+    <link rel="prev" title="EnumerateNullomers" href="enumerate_nullomers.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="extractmutationnullomers">
+<h1>ExtractMutationNullomers<a class="headerlink" href="#extractmutationnullomers" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><strong>Finds all mutations that cause the resurfacing of a list of nullomers.</strong></p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text"><strong>Required arguments:</strong></span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Argument</p></th>
+<th class="head"><p>Explanation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>–genome_filepath</p></td>
+<td><p>Path to the fasta file containing the genome being analyzed.<sup>*</sup></p></td>
+</tr>
+<tr class="row-odd"><td><p>–nullomer_input_filepath</p></td>
+<td><p>Path to the .txt file containing the nullomers absent from the supplied genome.</p></td>
+</tr>
+<tr class="row-even"><td><p>–mutation_input_filepath</p></td>
+<td><p>Path to the file containing variants to be analyzed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>–mutation_output_filepath</p></td>
+<td><p>Path to the output file where the neomer-causing mutations will be written to.</p></td>
+</tr>
+<tr class="row-even"><td><p>–nullomer_length</p></td>
+<td><p>Length of nullomers being analyzed.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text"><strong>Optional arguments:</strong></span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Argument</p></th>
+<th class="head"><p>Explanation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>–chr_col</p></td>
+<td><p>Column number of input variant file indicating the variant chromosome (Default=0, for .vcf format)</p></td>
+</tr>
+<tr class="row-odd"><td><p>–pos_col</p></td>
+<td><p>Column number of input variant file indicating the variant position (Default=1, for .vcf format)</p></td>
+</tr>
+<tr class="row-even"><td><p>–ref_col</p></td>
+<td><p>Column number of input variant file indicating the reference allele (Default=3, for .vcf format)</p></td>
+</tr>
+<tr class="row-odd"><td><p>–alt_col</p></td>
+<td><p>Column number of input variant file indicating the alternative allele (Default=4, for .vcf format)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p><strong>Outputs:</strong></p>
+<ul class="simple">
+<li><p>VCF-compatible file containing variants from provided variant file that cause at least one nullomer to resurface.</p></li>
+</ul>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><sup>*</sup> This file must be formatted such that the FASTA headers read “&gt;chr1”, “&gt;chr2”, “&gt;chr3”, …</p>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Nullomerator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="enumerate_nullomers.html">EnumerateNullomers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ExtractMutationNullomers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="find_almost_nullomers.html">FindAlmostNullomers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="find_nullomer_variants.html">FindNullomerVariants</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="enumerate_nullomers.html" title="previous chapter">EnumerateNullomers</a></li>
+      <li>Next: <a href="find_almost_nullomers.html" title="next chapter">FindAlmostNullomers</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Ryder Easterlin, Ilias Georgakopoulos-Soares, Ioannis Mouratidis.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/extract_mutation_nullomers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
