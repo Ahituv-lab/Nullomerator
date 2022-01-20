@@ -93,7 +93,7 @@ Welcome to Nullomerator's documentation!
     :maxdepth: 1
     :hidden:
 
-    licence
+    license
 
 
 .. toctree::
