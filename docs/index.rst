@@ -12,13 +12,13 @@ Welcome to Nullomerator's documentation!
 
     Brief summary of the problems and settings Nullomerator can be applied to.
 
-**Installation**
-
-    Instructions for the installation of Nullomerator.
-
 **Introduction**
 
     Background information regarding neomers and their application to cancer detection.  
+
+**Installation**
+
+    Instructions for the installation of Nullomerator.
 
 **Tutorial**
 
@@ -47,6 +47,10 @@ Welcome to Nullomerator's documentation!
 
     Contact information for questions, ideas, feature requests and potential bug reports.
 
+**References**
+
+    Previous works cited in this documentation.
+
 .. toctree::
     :name: Asymmetron-Quick-Summary
     :maxdepth: 1
@@ -55,20 +59,25 @@ Welcome to Nullomerator's documentation!
     quick_summary
 
 .. toctree::
-    :name: Asymmetron-install
-    :maxdepth: 1
-    :hidden:
-
-    install
-
-
-.. toctree::
     :name: Asymmetron-introduction
     :maxdepth: 1
     :hidden:
 
     introduction
 
+.. toctree::
+    :name: Asymmetron-install
+    :maxdepth: 1
+    :hidden:
+
+    install
+
+.. toctree::
+    :name: Asymmetron-tutorial
+    :maxdepth: 1
+    :hidden:
+
+    tutorial
 
 .. toctree::
     :name: Nullomerator-instructions
@@ -80,16 +89,9 @@ Welcome to Nullomerator's documentation!
     find_almost_nullomers
     find_nullomer_variants
 
-.. toctree::
-    :name: Asymmetron-tutorial
-    :maxdepth: 1
-    :hidden:
-
-    tutorial
-
 
 .. toctree::
-    :name: Asymmetron-Licence
+    :name: Nullomerator-Licence
     :maxdepth: 1
     :hidden:
 
@@ -102,3 +104,10 @@ Welcome to Nullomerator's documentation!
     :hidden:
 
     support
+
+.. toctree::
+    :name: References
+    :maxdepth: 1
+    :hidden:
+
+    references
