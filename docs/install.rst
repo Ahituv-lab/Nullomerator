@@ -1,7 +1,7 @@
 .. Tutorial:
   
 ====================
-Tutorial
+Install
 ====================
 
 Install Stub
