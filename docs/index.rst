@@ -37,10 +37,7 @@ Welcome to Nullomerator's documentation!
     :doc:`FindNullomerVariants <../find_nullomer_variants>`
 
 
-
-**License**
-
-    Asymmetron is freely available under the APACHE LICENSE, VERSION 2.0 - The software can be freely used, modified or added to other pipelines and workflows.
+   
 
 
 **Support**
